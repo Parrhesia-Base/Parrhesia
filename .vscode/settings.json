@@ -1,0 +1,8 @@
+{
+    "rust-analyzer.rustfmt.extraArgs": [
+        "--config", 
+        "brace_style=AlwaysNextLine,control_brace_style=AlwaysNextLine"
+        
+        // "--config-path", "${workspaceFolder}/rustfmt.toml"
+    ]
+}
