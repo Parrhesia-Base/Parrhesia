@@ -30,9 +30,9 @@ pub async fn start_connection() -> DatabaseConnection {
         .expect("Failed to open database!");
 
     // Run migrations on database
-    Migrator::down(&connection, None)
-        .await
-        .expect("Failed to reset database");
+    // Migrator::down(&connection, None)
+    //     .await
+    //     .expect("Failed to reset database");
     Migrator::up(&connection, None)
         .await
         .expect("Database migration failed!");
