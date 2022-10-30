@@ -1,5 +1,5 @@
 use async_graphql::{EmptySubscription, Schema, Response, Request};
-use poem::{get, listener::TcpListener, Route, Server, web::{Json, Data}, http::{HeaderMap}, handler, EndpointExt};
+use poem::{get, listener::TcpListener, Route, Server, web::{Json, Data}, http::{HeaderMap}, handler, EndpointExt, endpoint::StaticFilesEndpoint};
 // use sea_orm::Schema;
 
 use self::api::{Query, Mut};
@@ -64,9 +64,8 @@ pub async fn start_server() -> Result<(), std::io::Error>
     println!("Starting budgeteer server on localhost:{}", port);
 
     let app = Route::new()
-        .at( "/graphql", get( api::graphql_playground ).post( graphql_post_handler )
-        .data( schema ),
-    );
+        .at( "/graphql", get( api::graphql_playground ).post( graphql_post_handler ).data( schema ))
+        .nest( "/", StaticFilesEndpoint::new( "./src/frontend/build" ).index_file( "index.html" ) );
 
     Server::new(TcpListener::bind(("0.0.0.0", port)))
         .run(app)
