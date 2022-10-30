@@ -15,7 +15,7 @@
             )
         }`;
 
-        return await fetch( 'http://localhost:3000/graphql', {
+        return await fetch( 'https://dev.meadowserver.com/graphql', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',

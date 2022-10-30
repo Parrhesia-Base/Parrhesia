@@ -125,7 +125,7 @@ impl AuthQuery {
             println!("Created token: {}", token);
 
             // let verified = skey.verify_token(&token, None);
-            ctx.append_http_header("Set-Cookie", "token=Hitherebitches!");
+            ctx.append_http_header("Set-Cookie", format!("token={}", token));
             Ok(true)
         }
         else {

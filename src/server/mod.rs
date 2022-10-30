@@ -1,5 +1,7 @@
 use async_graphql::{EmptySubscription, Schema, Response, Request};
-use poem::{get, listener::TcpListener, Route, Server, web::{Json, Data}, http::{HeaderMap}, handler, EndpointExt, endpoint::StaticFilesEndpoint};
+use poem::{get, listener::TcpListener, Route, Server, web::{Json, Data, headers::{ Cookie, HeaderMapExt }}, http::{HeaderMap}, handler, EndpointExt, endpoint::StaticFilesEndpoint};
+use async_graphql_poem::{ GraphQLRequest, GraphQLResponse };
+// use headers::{Cookie};
 // use sea_orm::Schema;
 
 use self::api::{Query, Mut};
@@ -24,23 +26,46 @@ fn get_available_port(starting_port: u16, ending_port: u16) -> Option<u16>
 #[handler]
 async fn graphql_post_handler(
     schema: Data<&Schema<Query, Mut, EmptySubscription>>,
-    req: Json<Request>,
+    req: GraphQLRequest,
     headers: &HeaderMap,
-) -> Json<Response> {
-    
-    if let Some( token ) = headers.get( "token" )
+) -> GraphQLResponse {
+    // let cookies = headers.get( "cookie" ).unwrap();
+    // let j = headers.typed_get::<Cookie>();
+    if let Some( cookies ) = headers.typed_get::<Cookie>()
     {
-        Json( schema.execute(
-            req.0.data( 
-                Token( token.to_str().expect("Error getting token").to_owned() )
-            )
-        ).await)
+        if let Some( token ) = cookies.get( "token" )
+        {
+            // token        
+            schema.execute(
+                req.0.data( 
+                    Token( token.to_owned() )
+                )
+            ).await
+        }
+        else
+        {
+            schema.execute( req.0 ).await
+        }
     }
     else
     {
-        Json( schema.execute( req.0 ).await )
-    }
-
+        schema.execute( req.0 ).await
+    }.into()
+    // let cookies = headers.typed_get::<Cookie>().expect( "Received cookies!" );
+    // cookies.get( "token" );
+    // println!( "Response cookies: {:?}", cookies );
+    // if let Some( token ) = headers.get( "token" )
+    // {
+    //     schema.execute(
+    //         req.0.data( 
+    //             Token( token.to_str().expect("Error getting token").to_owned() )
+    //         )
+    //     ).await
+    // }
+    // else
+    // {
+    //     schema.execute( req.0 ).await
+    // }.into()
 }
 
 pub async fn start_server() -> Result<(), std::io::Error>
