@@ -5,7 +5,7 @@ use async_graphql_poem::{ GraphQLRequest, GraphQLResponse };
 use self::api::{Query, Mut};
 use self::api_auth::{Token};
 
-use poem_proxy::ProxyEndpoint;
+use poem_proxy::{proxy};
 
 mod api;
 mod api_auth;
@@ -75,7 +75,8 @@ pub async fn start_server() -> Result<(), std::io::Error>
     let app = Route::new()
         .at( "/graphql", get( api::graphql_playground ).post( graphql_post_handler ).data( schema ))
         // .nest( "/", StaticFilesEndpoint::new( "./src/frontend/build" ).index_file( "index.html" ) )
-        .nest( "/", ProxyEndpoint::new( "http://localhost:5173".to_owned() ) );
+        // .nest( "/", ProxyEndpoint::new( "http://localhost:5173".to_owned() ) );
+        .nest( "/", proxy.data( "http://localhost:5173".to_owned() ) );
 
     Server::new(TcpListener::bind(("0.0.0.0", port)))
         .run(app)
