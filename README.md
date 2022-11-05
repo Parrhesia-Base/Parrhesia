@@ -1,4 +1,4 @@
-# budgeteer
-An event-based budgeting and finance simulation application
+# Parrhesia
+Parrhesia is the foundation of your next highly-performant multiplatform application
 
 *More details to follow*
