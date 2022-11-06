@@ -3,12 +3,12 @@ use std::{io::Error, ops::Deref, cell::RefCell, sync::Arc};
 // use async_graphql::{EmptySubscription, Schema};
 use poem::{get, listener::TcpListener, Route, Server, web::{Data, headers::{ Cookie, HeaderMapExt }, Json}, http::{HeaderMap}, handler, EndpointExt, endpoint::StaticFilesEndpoint, Response};
 // use async_graphql_poem::{ GraphQLRequest, GraphQLResponse };
-
+use surreal_poem::{ SurrealConnection, SurrealSession, create_surreal_socket_endpoint };
 // use self::api::{Query, Mut};
 // use self::api_auth::{Token};
 
 use poem_proxy::{proxy};
-use surrealdb::{Session, sql::{Array, Value}, Datastore};
+// use surrealdb::{Session, sql::{Array, Value}, Datastore};
 
 mod api;
 mod api_auth;
@@ -55,30 +55,29 @@ fn get_available_port(starting_port: u16, ending_port: u16) -> Option<u16>
 //     }.into()
 // }
 
-#[handler]
-pub async fn db_request( db: Data<&Arc<Datastore>>, ses: Data<&Session> ) -> Json<Value> {
-    // let ses = Session::for_db( "root", "Finances" );
-    // todo!();
-    let ast = "CREATE users:joeyme SET age=32, name='Joey', qualities=['dumb', 'young'];";
-    let res = db.execute( ast, &ses, None, false ).await;
+// #[handler]
+// pub async fn db_request( db: Data<&Arc<Datastore>>, ses: Data<&Session> ) -> Json<Value> {
+//     // let ses = Session::for_db( "root", "Finances" );
+//     // todo!();
+//     let ast = "CREATE users:joeyme SET age=32, name='Joey', qualities=['dumb', 'young'];";
+//     let res = db.execute( ast, &ses, None, false ).await;
 
-    let Ok( res ) = res else {
-        todo!();
-    };
+//     let Ok( res ) = res else {
+//         todo!();
+//     };
 
-    let Ok( res ) = &res[ 0 ].result else {
-        todo!();
-    };
+//     let Ok( res ) = &res[ 0 ].result else {
+//         todo!();
+//     };
 
-    Json( res.clone() )
-}
+//     Json( res.clone() )
+// }
 
-pub async fn start_server( db: Arc<Datastore>, ses: Session ) -> Result<(), std::io::Error>
+pub async fn start_server( 
+    db: SurrealConnection, 
+    ses: SurrealSession 
+    ) -> Result<(), std::io::Error>
 {
-    // Generate secret key
-    // let server_key = api_auth::get_secret_key();
-
-
     // let j = |query: &str| {
     //     db.execute( query, &ses, None, false )
     // };
@@ -119,11 +118,8 @@ pub async fn start_server( db: Arc<Datastore>, ses: Session ) -> Result<(), std:
         // .at( "/graphql", get( api::graphql_playground ).post( graphql_post_handler ).data( schema ))
         // .nest( "/", StaticFilesEndpoint::new( "./src/frontend/build" ).index_file( "index.html" ) )
         // .nest( "/", ProxyEndpoint::new( "http://localhost:5173".to_owned() ) );
-        .at( "/db", 
-            get( db_request )
-        )
-        .nest( "/", proxy.data( "http://localhost:5173".to_owned() ) )
-        .data( db ).data( ses );
+        .at( "/rpc", create_surreal_socket_endpoint( db, ses ) )
+        .nest( "/site", proxy.data( "http://localhost:5173".to_owned() ) );
 
     Server::new(TcpListener::bind(("0.0.0.0", port)))
         .run(app)

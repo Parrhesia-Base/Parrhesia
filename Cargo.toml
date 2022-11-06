@@ -8,10 +8,9 @@ edition = "2021"
 [dependencies]
 # Internal
 poem-proxy = { path = "poem-proxy" }
+surreal-poem = { path = "SurrealDB-poem" }
 
 # External
 poem = { version = "1.3.48", features = [ "static-files" ] }
 tokio = { version = "1.21.2", features = ["full"] }
 dirs = "4.0.0"
-surrealdb = "1.0.0-beta.8"
-patch = "0.6.0"
