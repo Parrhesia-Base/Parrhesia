@@ -31,11 +31,9 @@ async fn main() -> Result<(), std::io::Error>
         uri
     };
 
-    let Ok( db ) = get_connection( &database_uri ).await else {
+    let Ok( db ) = get_connection( &database_uri, "parrhesia", "parrhesia" ).await else {
         todo!() // Add error handling for when database connection fails
     };
-
-    // let p_db = ::new( db );
     let ses = SurrealSession::for_db( "root", "Finances" );
 
     // Start the server and database connection

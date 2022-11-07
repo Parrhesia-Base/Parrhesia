@@ -1,6 +1,0 @@
-[submodule "poem-proxy"]
-	path = poem-proxy
-	url = git@github.com:Parresia-Web/poem-proxy.git
-[submodule "SurrealDB-poem"]
-	path = SurrealDB-poem
-	url = git@github.com:Parrhesia-Base/SurrealDB-poem.git

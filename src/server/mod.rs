@@ -1,9 +1,9 @@
 use std::{io::Error, ops::Deref, cell::RefCell, sync::Arc};
 
 // use async_graphql::{EmptySubscription, Schema};
-use poem::{get, listener::TcpListener, Route, Server, web::{Data, headers::{ Cookie, HeaderMapExt }, Json}, http::{HeaderMap}, handler, EndpointExt, endpoint::StaticFilesEndpoint, Response};
+use poem::{get, listener::TcpListener, Route, Server, web::{Data, headers::{ Cookie, HeaderMapExt }, Json, Html}, http::{HeaderMap}, handler, EndpointExt, endpoint::StaticFilesEndpoint, Response};
 // use async_graphql_poem::{ GraphQLRequest, GraphQLResponse };
-use surreal_poem::{ SurrealConnection, SurrealSession, create_surreal_socket_endpoint };
+use surreal_poem::{ SurrealDB, SurrealSession, surreal_socket };
 // use self::api::{Query, Mut};
 // use self::api_auth::{Token};
 
@@ -72,9 +72,56 @@ fn get_available_port(starting_port: u16, ending_port: u16) -> Option<u16>
 
 //     Json( res.clone() )
 // }
+#[handler]
+fn index() -> Html<&'static str> {
+    Html(
+        r###"
+    <body>
+        <form id="loginForm">
+            Name: <input id="nameInput" type="text" />
+            <button type="submit">Login</button>
+        </form>
+        
+        <form id="sendForm" hidden>
+            Text: <input id="msgInput" type="text" />
+            <button type="submit">Send</button>
+        </form>
+        
+        <textarea id="msgsArea" cols="50" rows="30" hidden></textarea>
+    </body>
+    <script>
+        let ws;
+        const loginForm = document.querySelector("#loginForm");
+        const sendForm = document.querySelector("#sendForm");
+        const nameInput = document.querySelector("#nameInput");
+        const msgInput = document.querySelector("#msgInput");
+        const msgsArea = document.querySelector("#msgsArea");
+        
+        nameInput.focus();
+        loginForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            loginForm.hidden = true;
+            sendForm.hidden = false;
+            msgsArea.hidden = false;
+            msgInput.focus();
+            ws = new WebSocket("ws://127.0.0.1:3000/rpc");
+            ws.onmessage = function(event) {
+                msgsArea.value += event.data + "\r\n";
+            }
+        });
+        
+        sendForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            ws.send(msgInput.value);
+            msgInput.value = "";
+        });
+    </script>
+    "###,
+    )
+}
 
 pub async fn start_server( 
-    db: SurrealConnection, 
+    db: SurrealDB, 
     ses: SurrealSession 
     ) -> Result<(), std::io::Error>
 {
@@ -114,12 +161,13 @@ pub async fn start_server(
 
     println!("Starting budgeteer server on localhost:{}", port);
 
-    let app = Route::new()
+    let app = Route::new()//.at("/", get(index))
         // .at( "/graphql", get( api::graphql_playground ).post( graphql_post_handler ).data( schema ))
         // .nest( "/", StaticFilesEndpoint::new( "./src/frontend/build" ).index_file( "index.html" ) )
         // .nest( "/", ProxyEndpoint::new( "http://localhost:5173".to_owned() ) );
-        .at( "/rpc", create_surreal_socket_endpoint( db, ses ) )
-        .nest( "/site", proxy.data( "http://localhost:5173".to_owned() ) );
+        .at( "/rpc", surreal_socket( db, ses ) )
+        // .at( "/rpc", create_surreal_http_endpoint( ) );
+        .nest( "/", proxy.data( "http://localhost:5173".to_owned() ) );
 
     Server::new(TcpListener::bind(("0.0.0.0", port)))
         .run(app)
