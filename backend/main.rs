@@ -1,12 +1,12 @@
-use std::{path::PathBuf, fs};
 use dirs::data_dir;
-use surreal_poem::{ get_connection, SurrealSession };
+use std::{fs, path::PathBuf, sync::Arc};
+use surreal_poem::{get_connection, initiate_auth_db, SurrealSession};
 
-mod server;
+use parrhesia::*;
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error>
-{    
+{
     // Get the database connection string
     let database_uri = {
         let mut path = PathBuf::new();
@@ -30,12 +30,25 @@ async fn main() -> Result<(), std::io::Error>
         println!("Database path: {}", uri);
         uri
     };
-
-    let Ok( db ) = get_connection( &database_uri, "parrhesia", "parrhesia" ).await else {
-        todo!() // Add error handling for when database connection fails
+    
+    let key_url = {
+        let mut path = PathBuf::new();
+        if let Some( dir ) = data_dir() {
+            path.push(dir);
+            path.push("Parrhesia");
+        };
+        
+        path.push( "server_key" );
+        
+        path
     };
-    let ses = SurrealSession::for_db( "root", "Finances" );
+
+    let Ok( db ) = get_connection( &database_uri ).await else {
+        panic!( "Cannot start backend service because the database connection to {} failed!", &database_uri);
+    };
+    let ses = SurrealSession::for_db("parrhesia", "parrhesia");
+    initiate_auth_db(Arc::clone(&db), "parrhesia", "parrhesia").await;
 
     // Start the server and database connection
-    server::start_server( db, ses ).await
+    server::start_server(db, ses, key_url).await
 }

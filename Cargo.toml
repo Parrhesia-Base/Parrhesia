@@ -2,15 +2,34 @@
 name = "parrhesia"
 version = "0.1.0"
 edition = "2021"
+default-run = "setup"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "parrhesia"
+path = "backend/lib.rs"
+
+[[bin]]
+name = "parrhesia"
+path = "backend/main.rs"
+
+[[bin]]
+name = "gizmo"
+path = "gizmo-src/main.rs"
+
+[[bin]]
+name = "setup"
+path = "gizmo-src/setup.rs"
+
 [dependencies]
+
 # Internal
+surreal-poem = { path = "../SurrealDB-poem" }
 poem-proxy = { git = "https://github.com/Parrhesia-Base/poem-proxy.git" }
-surreal-poem = { git = "https://github.com/Parrhesia-Base/SurrealDB-poem.git" }
 
 # External
 poem = { version = "1.3.48", features = [ "static-files" ] }
-tokio = { version = "1.21.2", features = ["full"] }
+tokio = { version = "1.21.2", features = [ "full" ] }
 dirs = "4.0.0"
+anyhow = "1.0.66"

@@ -4,7 +4,6 @@
 </script>
 
 <div>
-    <h1 style="text-align: center">Welcome to Meadow</h1>
+    <h1 style="text-align: center">Welcome Joey!</h1>
     <Login />
-    <Button />
 </div>

@@ -30,12 +30,12 @@
 
 <template>
     <button on:click={ increment }>{ value }</button>
-    <p>{response}</p>
+    <p>{response} </p>
 </template>
 
 <style>
     button {
-        padding: 12px, 12px, 12px, 12px;
+        padding: 12px, 12px, 12px, 13px;
         font-size: 200px;
         aspect-ratio: 1;
         height: 300px;

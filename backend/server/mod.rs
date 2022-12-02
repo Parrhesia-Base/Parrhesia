@@ -1,4 +1,4 @@
-use std::{io::Error, ops::Deref, cell::RefCell, sync::Arc};
+use std::{io::Error, ops::Deref, cell::RefCell, sync::Arc, path::PathBuf};
 
 // use async_graphql::{EmptySubscription, Schema};
 use poem::{get, listener::TcpListener, Route, Server, web::{Data, headers::{ Cookie, HeaderMapExt }, Json, Html}, http::{HeaderMap}, handler, EndpointExt, endpoint::StaticFilesEndpoint, Response};
@@ -7,7 +7,7 @@ use surreal_poem::{ SurrealDB, SurrealSession, surreal_socket };
 // use self::api::{Query, Mut};
 // use self::api_auth::{Token};
 
-use poem_proxy::{proxy};
+use poem_proxy::{proxy, ProxyConfig};
 // use surrealdb::{Session, sql::{Array, Value}, Datastore};
 
 mod api;
@@ -122,7 +122,8 @@ fn index() -> Html<&'static str> {
 
 pub async fn start_server( 
     db: SurrealDB, 
-    ses: SurrealSession 
+    ses: SurrealSession,
+    key_path: PathBuf
     ) -> Result<(), std::io::Error>
 {
     // let j = |query: &str| {
@@ -161,13 +162,21 @@ pub async fn start_server(
 
     println!("Starting budgeteer server on localhost:{}", port);
 
+    // Configure proxy endpoint
+    let proxy_config = ProxyConfig::new( "localhost:5173" )
+        .web_insecure()
+        .ws_insecure()
+        .enable_nesting()
+        .finish();
+
+
     let app = Route::new()//.at("/", get(index))
         // .at( "/graphql", get( api::graphql_playground ).post( graphql_post_handler ).data( schema ))
         // .nest( "/", StaticFilesEndpoint::new( "./src/frontend/build" ).index_file( "index.html" ) )
         // .nest( "/", ProxyEndpoint::new( "http://localhost:5173".to_owned() ) );
-        .at( "/rpc", surreal_socket( db, ses ) )
+        .at( "/rpc", surreal_socket( db, ses, key_path ) )
         // .at( "/rpc", create_surreal_http_endpoint( ) );
-        .nest( "/", proxy.data( "http://localhost:5173".to_owned() ) );
+        .nest( "/", proxy.data( proxy_config ) );
 
     Server::new(TcpListener::bind(("0.0.0.0", port)))
         .run(app)
