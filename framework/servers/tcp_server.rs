@@ -1,13 +1,18 @@
+// use crate::services::Service;
+
 use crate::services::Service;
 
 use super::ServiceType;
 
+use std::net::SocketAddr;
+
 use super::{async_trait, Server};
-use poem::{listener::TcpListener, Route, RouteMethod};
+// use poem::{listener::TcpListener, Route, RouteMethod};
+use axum::Router;
 
 #[derive(Default)]
 pub struct TcpServer {
-    router: Route,
+    router: Router,
     addr: String,
     port: u16,
 }
@@ -26,24 +31,32 @@ impl TcpServer {
 #[async_trait]
 impl Server for TcpServer {
     fn add_service(&mut self, path: impl AsRef<str>, service: ServiceType) {
-        let mut router = std::mem::take(&mut self.router).at(path, service.extract_endpoint());
+        // let mut router = std::mem::take(&mut self.router).at(path, service.extract_endpoint());
+        let router = std::mem::take(&mut self.router);
+        let mut router = router.route(path.as_ref(), service.extract_service());
         std::mem::swap(&mut self.router, &mut router);
+        // std::mem::swap(&mut self.router, &mut router);
     }
 
-    fn add_nested_service<E>(&mut self, path: impl AsRef<str>, service: E)
-    where
-        E: poem::IntoEndpoint,
-        E::Endpoint: 'static,
-    {
-        let mut router = std::mem::take(&mut self.router);
-        router = router.nest(path, service);
-        std::mem::swap(&mut self.router, &mut router);
-    }
+    // fn add_nested_service<E>(&mut self, path: impl AsRef<str>, service: E)
+    // where
+    //     E: poem::IntoEndpoint,
+    //     E::Endpoint: 'static,
+    // {
+    //     let mut router = std::mem::take(&mut self.router);
+    //     router = router.nest(path, service);
+    //     std::mem::swap(&mut self.router, &mut router);
+    // }
 
     async fn serve(mut self) -> anyhow::Result<(), anyhow::Error> {
-        poem::Server::new(TcpListener::bind((self.addr, self.port)))
-            .run(self.router)
+        // poem::Server::new(TcpListener::bind((self.addr, self.port)))
+        //     .run(self.router)
+        //     .await?;
+        let addr: SocketAddr = format!("{}:{}", self.addr, self.port).parse()?;
+        axum::Server::bind(&addr)
+            .serve(self.router.into_make_service())
             .await?;
+
         Ok(())
     }
 }

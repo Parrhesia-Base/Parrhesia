@@ -9,7 +9,7 @@ path = "lib.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-poem.workspace = true
+axum.workspace = true
 async-trait.workspace = true
 anyhow.workspace = true
 futures.workspace = true

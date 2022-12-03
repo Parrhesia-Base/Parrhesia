@@ -1,5 +1,7 @@
-use framework::services::{ServiceType, StaticDataService};
+use framework::services::{MethodFilter, ServiceType, StaticDataService};
 
 pub fn get_service() -> ServiceType {
-    StaticDataService::default().into()
+    let mut service = StaticDataService::default();
+    service.supported_methods = MethodFilter::GET;
+    service.into()
 }
