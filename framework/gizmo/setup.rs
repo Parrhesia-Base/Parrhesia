@@ -15,21 +15,17 @@ fn main() -> Result<()>
     println!( " ==================================================================== " );
     println!( " ==================================================================== " );
     println!( "                             INTRODUCTION                             " );
-    println!( " In order to support a first-class cross platform experience, this    " );
-    println!( " project features a unique build system. Calling 'cargo run' will     " );
-    println!( " compile all project dependencies, and run this setup script.         " );
+    println!( " Welcome to the Parrhesia setup script! This is a simple utility that " );
+    println!( " performs first-time initialization for the project and moves the     " );
+    println!( " Gizmo utility into the root project directory.                       " );
     println!( "                                                                      " );
     println!( "                                GIZMO                                 " );
-    println!( " This setup script compiles the 'gizmo' binary, and copies it to the  " );
-    println!( " root directory of this project. Gizmo is to Parrhesia what Artisan   " );
-    println!( " is to Laravel. It is a tool to facilitate better interaction between " );
-    println!( " developer and project. Once gizmo is available, you should no longer " );
-    println!( " work with the cargo build system directly, but instead do all your   " );
-    println!( " project management through 'gizmo'. See 'gizmo -h' for a thorough    " );
-    println!( " explanation of how it can be used.                                   " );
-    
-
-    // println!( " Welcome... To Parrhesia!" );
+    println!( " Gizmo is a fully native autocoding / project management tool that    " );
+    println!( " makes your life easier. Invoke it with no arguments to see the usage " );
+    println!( " guide, or visit https://link_to_be_made_later.                       " );
+    println!( "                                                                      " );
+    println!( "                         INSTALL (TEMPORARY)                          " );
+    println!( " To use Gizmo without typing the path to it, run this command:        " );
 
     let mut exe_dir = env::current_exe().with_context( || "Unable to determine location of target output. Please report this error, as it shouldn't be possible to reach" )?;
 
@@ -68,8 +64,11 @@ fn main() -> Result<()>
         exe_dir
     };
 
-    // println!("Current target directory: {:?}", gizmo_target);
-    // println!("Current project directory: {:?}", project_gizmo);
+    if cfg!(windows) {
+        println!( "  - doskey gizmo={:?} $*", project_gizmo );
+    } else {
+        println!( "  - alias gizmo={:?}", project_gizmo );
+    }
 
     let copy = if project_gizmo.exists() {
         let btime = gizmo_target
@@ -93,6 +92,13 @@ fn main() -> Result<()>
         fs::copy( &gizmo_target, &project_gizmo ).with_context( || format!( "Failed to copy {:?} to {:?}", gizmo_target, project_gizmo ) )?;
         println!( "Moved gizmo to the project directory" );
     }
+
+    println!( "                                                                      " );
+    println!( "                         INSTALL (PERMANENT)                          " );
+    println!( " To enable the use of Gizmo across terminal sessions, you will have to" );
+    println!( " add the project folder to your PATH. This process depends on your    " );
+    println!( " specific environment, so look for instructions elsewhere.            " );
+    println!( "   - {:?}", project_gizmo.parent().unwrap() );
 
     Ok(())
 }
