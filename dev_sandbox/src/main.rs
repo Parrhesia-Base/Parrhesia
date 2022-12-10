@@ -1,4 +1,5 @@
 use std::convert::Infallible;
+use std::error::Error;
 use std::marker::PhantomData;
 
 use axum::body::HttpBody;
@@ -9,36 +10,27 @@ use axum::{
 };
 use enum_dispatch::enum_dispatch;
 
+use anyhow::{Result, bail};
+
 async fn stupid() -> String {
     "Hi there".into()
 }
 
-#[enum_dispatch(ServiceType<H, T, S, B>)]
-trait Service<S = (), B = Body> {
-    fn extract_service(&mut self) -> MethodRouter<S, B>;
+#[enum_dispatch(ServiceType)]
+trait Service {
+    fn extract_service(&mut self) -> Result<MethodRouter>;
 }
 
 #[enum_dispatch]
-pub enum ServiceType<H, T, S, B>
-where
-    H: Handler<T, S, B>,
-    B: HttpBody + Send + 'static,
-    T: 'static,
-    S: Clone + Send + Sync + 'static,
+pub enum ServiceType
 {
-    ByohService(ByohService<H, T, S, B>),
+    ByohService,
 }
 
-pub struct ByohService<H, T, S, B>
-where
-    H: Handler<T, S, B>,
-    B: HttpBody + Send + 'static,
-    T: 'static,
-    S: Clone + Send + Sync + 'static,
+pub struct ByohService
 {
     supported_methods: MethodFilter,
-    handler: H,
-    phantom: PhantomData<(T, S, B)>
+    subrouter: Option<MethodRouter>,
 }
 
 // pub struct test<H, S, T, B> where
@@ -49,24 +41,35 @@ where
 //         mine: H
 //         }
 
-impl<H, T, S, B> Service<S, B> for ByohService<H, T, S, B>
-where
-    H: Handler<T, S, B>,
-    B: HttpBody + Send + 'static,
-    T: 'static,
-    S: Clone + Send + Sync + 'static,
+impl Service for ByohService
 {
-    fn extract_service(&mut self) -> MethodRouter<S, B> {
-        on(self.supported_methods, self.handler.clone())
+    fn extract_service(&mut self) -> Result<MethodRouter>  {
+        match std::mem::take( &mut self.subrouter ) {
+            Some( subrouter ) => Ok( subrouter ),
+            None => bail!( "Attempted to use byoh service without proper initialization!" ),
+        }
+    }
+}
+
+impl ByohService
+{
+    fn new() -> Self {
+        ByohService { supported_methods: MethodFilter::empty(), subrouter: None }
+    }
+    
+    fn set_handler<H, T>( &mut self, handler: H ) where
+        H: Handler<T, (), Body>,
+        T: 'static {
+        self.subrouter = Some( on( self.supported_methods, handler ) );
     }
 }
 
 fn main() {
-    let mut serv = ServiceType::ByohService(ByohService {
-        supported_methods: MethodFilter::GET,
-        handler: stupid,
-        phantom: PhantomData
-    });
-    // serv.extract_service();
-    println!("Hello, world!");
+    // let mut serv = ServiceType::ByohService(ByohService {
+    //     supported_methods: MethodFilter::GET,
+    //     handler: stupid,
+    //     phantom: PhantomData
+    // });
+    
+    
 }

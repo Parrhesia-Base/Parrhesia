@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 enum_dispatch = "0.3.8"
 axum = "0.6.1"
+anyhow.workspace = true
