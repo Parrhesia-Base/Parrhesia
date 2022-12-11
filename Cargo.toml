@@ -1,13 +1,13 @@
 [workspace]
 members = [
-    # "app",
+    "app",
     # "backend",
-    # "framework",
-    # "framework/gizmo",
-    "dev_sandbox",
-    # "backend/api",
-    # "backend/database",
-    # "backend/routing",
+    "framework",
+    "framework/gizmo",
+    # "dev_sandbox",
+    "backend/api",
+    "backend/database",
+    "backend/routing",
     # "backend/services",
     # "public",
 ]
@@ -19,3 +19,4 @@ anyhow = "1.0.66"
 futures = "0.3.25"
 enum_dispatch = "0.3.8"
 axum = "0.6.1"
+automod = "1.0.4"

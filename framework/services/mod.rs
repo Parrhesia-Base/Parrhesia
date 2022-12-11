@@ -1,21 +1,25 @@
+use anyhow::Result;
 use axum::routing::MethodRouter;
 use enum_dispatch::enum_dispatch;
-// mod static_data;
 mod byoh;
+mod static_data;
+
+pub use byoh::ByohService;
+pub use static_data::StaticDataService;
 
 // use poem::RouteMethod;
-// pub use static_data::*;
 
 pub use axum::routing::MethodFilter;
 
 #[enum_dispatch(ServiceType)]
 pub trait Service {
-    fn extract_service(&mut self) -> MethodRouter;
+    fn extract_service(&mut self) -> Result<MethodRouter>;
 }
 
 #[enum_dispatch]
 pub enum ServiceType {
-    // StaticDataService,
+    StaticDataService,
+    ByohService,
 }
 
 // pub enum RequestMethod {

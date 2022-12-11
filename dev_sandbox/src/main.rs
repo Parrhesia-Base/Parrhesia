@@ -1,8 +1,3 @@
-use std::convert::Infallible;
-use std::error::Error;
-use std::marker::PhantomData;
-
-use axum::body::HttpBody;
 use axum::{
     body::Body,
     handler::Handler,
@@ -33,14 +28,6 @@ pub struct ByohService
     subrouter: Option<MethodRouter>,
 }
 
-// pub struct test<H, S, T, B> where
-//     H: Handler<T, S, B>,
-//     B: HttpBody + Send + 'static,
-//     T: 'static,
-//     S: Clone + Send + Sync + 'static {
-//         mine: H
-//         }
-
 impl Service for ByohService
 {
     fn extract_service(&mut self) -> Result<MethodRouter>  {
@@ -57,19 +44,23 @@ impl ByohService
         ByohService { supported_methods: MethodFilter::empty(), subrouter: None }
     }
     
-    fn set_handler<H, T>( &mut self, handler: H ) where
+    pub fn set_handler<H, T>( &mut self, handler: H ) where
         H: Handler<T, (), Body>,
         T: 'static {
         self.subrouter = Some( on( self.supported_methods, handler ) );
     }
+
+    /// Returns an error result if set_handler is called prior to this method
+    pub fn set_methods( &mut self, methods: MethodFilter ) -> Result<()> {
+        if self.subrouter.is_some() {
+            bail!( "Supported Methods must be set prior to setting the handler!" )
+        }
+        self.supported_methods = methods;
+        Ok(())
+    }
 }
 
 fn main() {
-    // let mut serv = ServiceType::ByohService(ByohService {
-    //     supported_methods: MethodFilter::GET,
-    //     handler: stupid,
-    //     phantom: PhantomData
-    // });
-    
-    
+    let mut j = ByohService::new();
+    j.set_handler( stupid );
 }

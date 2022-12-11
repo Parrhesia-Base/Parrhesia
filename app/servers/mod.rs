@@ -1,45 +1,18 @@
-use std::pin::Pin;
-
-use anyhow::{bail, Error, Result};
-use framework::servers::{Server, ServerType};
-use futures::future;
+use anyhow::{Context, Result};
+use framework::servers::ServerList;
 
 mod main_server;
 
-pub struct Servers {
-    servers: Vec<ServerType>,
-}
+/// init_services is where we officially execute the services that
+/// make up our backend. Thing of it as registering the various components
+/// we depend on.
+pub fn init_services() -> Result<ServerList> {
+    let mut servers = ServerList::new();
 
-impl Servers {
-    pub fn new() -> Self {
-        // Initialize the servers object
-        let mut servers = Servers { servers: vec![] };
+    servers.add(
+        main_server::get_server()
+            .with_context(|| "While adding main_server to the server list.")?,
+    );
 
-        // Add servers to the backend
-        servers.servers.push(main_server::get_server());
-
-        // Return the servers object
-        servers
-    }
-
-    pub async fn run(&mut self) -> Result<(), Error> {
-        let mut futures: Vec<
-            Pin<Box<dyn futures::Future<Output = Result<(), anyhow::Error>> + std::marker::Send>>,
-        > = vec![];
-
-        for server in std::mem::take(&mut self.servers) {
-            futures.push(server.serve());
-        }
-
-        while !futures.is_empty() {
-            match future::select_all(futures).await {
-                (Ok(()), _index, remaining) => futures = remaining,
-                (Err(_e), _, _) => {
-                    bail!("One of the servers failed! Shutting down the backend.")
-                }
-            }
-        }
-
-        Ok(())
-    }
+    Ok(servers)
 }

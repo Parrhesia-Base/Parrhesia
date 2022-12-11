@@ -1,99 +1,49 @@
-// use poem::{get, handler, Endpoint, IntoEndpoint, IntoResponse, Response, Route, RouteMethod};
-
 use super::Service;
 
-// #[handler]
-// pub fn static_handler() -> String {
-//     "Hi there!".into()
-// }
-
-async fn static_handler() -> impl IntoResponse {
-    "Hello there!"
-}
-
+use anyhow::{bail, Result};
 use axum::{
-    body::{Body, HttpBody},
+    body::Body,
     handler::Handler,
-    response::IntoResponse,
-    routing::{get, on, MethodFilter, MethodRouter},
-    Router,
+    routing::{on, MethodFilter, MethodRouter},
 };
 
 /// Bring-Your-Own-Handler Service
 pub struct ByohService {
-    // pub supported_methods: Vec<RequestMethod>,
-    // =pub data: Response,
     pub supported_methods: MethodFilter,
-    service: MethodRouter,
-    // handler: dyn Handler<, ()>,
+    subrouter: Option<MethodRouter>,
 }
 
 impl Service for ByohService {
-    fn extract_service(&mut self) -> MethodRouter {
-        // static_handler
-        // self.handler.
-        // let r = Router::new().route("path", get(static_handler));
-        // on(self.supported_methods, r)
-        std::mem::take(&mut self.service)
+    fn extract_service(&mut self) -> Result<MethodRouter> {
+        match std::mem::take(&mut self.subrouter) {
+            Some(subrouter) => Ok(subrouter),
+            None => bail!("Attempted to use the BYOH service without first giving it a handler!"),
+        }
     }
 }
 
-// impl Default for ByohService {
-//     fn default() -> Self {
-//         Self {
-//             // handler: static_handler,
-//             supported_methods: MethodFilter::empty(),
-//         }
-//     }
-// }
-
 impl ByohService {
+    pub fn new() -> Self {
+        ByohService {
+            supported_methods: MethodFilter::empty(),
+            subrouter: None,
+        }
+    }
+
     pub fn set_handler<H, T>(&mut self, handler: H)
     where
         H: Handler<T, (), Body>,
         T: 'static,
     {
-        self.service = on(self.supported_methods, handler);
+        self.subrouter = Some(on(self.supported_methods, handler));
+    }
+
+    /// Returns an error result if set_handler is called prior to this method
+    pub fn set_methods(&mut self, methods: MethodFilter) -> Result<()> {
+        if self.subrouter.is_some() {
+            bail!("Supported Methods must be set prior to setting the handler!")
+        }
+        self.supported_methods = methods;
+        Ok(())
     }
 }
-
-// trait Test {
-//     // fn test(self) -> dyn poem::Endpoint<Output = dyn IntoResponse>;
-//     // fn test2(self) -> Box<dyn IntoEndpoint<Endpoint = dyn Endpoint<Output = dyn IntoResponse>>>;
-//     fn get_method_router() -> MethodRouter;
-// }
-
-// impl Test for StaticDataService {
-//     fn get_method_router() -> MethodRouter {
-//         get(string_handler)
-//     }
-// }
-
-// enum ServiceTypes {
-//     Endpoint(dyn Endpoint),
-// }
-
-// impl<T> Test<T> for StaticDataService
-// where
-//     T: IntoEndpoint,
-// {
-//     fn test(self) -> T {
-//         get(static_handler)
-//     }
-// }
-
-// impl Test for StaticDataService {
-//     fn test2(self) -> Box<dyn IntoEndpoint<Endpoint = dyn Endpoint<Output = dyn IntoResponse>>> {
-//         Box::new(get(static_handler))
-//     }
-// }
-
-// fn test() -> impl Endpoint {
-//     static_handler
-// }
-
-// fn fun_name() {
-//     let r = Route::new();
-//     let r = r.at("/you", static_handler);
-//     // let r = r.at("/", test());
-// }

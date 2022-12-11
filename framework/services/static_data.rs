@@ -11,6 +11,7 @@ async fn static_handler() -> impl IntoResponse {
     "Hello there!"
 }
 
+use anyhow::Result;
 use axum::{
     response::IntoResponse,
     routing::{on, MethodFilter, MethodRouter},
@@ -23,9 +24,9 @@ pub struct StaticDataService {
 }
 
 impl Service for StaticDataService {
-    fn extract_service(self) -> MethodRouter {
+    fn extract_service(&mut self) -> Result<MethodRouter> {
         // static_handler
-        on(self.supported_methods, static_handler)
+        Ok(on(self.supported_methods, static_handler))
     }
 }
 
