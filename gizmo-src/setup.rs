@@ -11,7 +11,7 @@ fn main() -> Result<()>
     println!( "  ██████  ███████ █████   █████   ███████ █████   ███████ ██ ███████  " );
     println!( "  ██      ██   ██ ██  ██  ██  ██  ██   ██ ██           ██ ██ ██   ██  " );
     println!( "  ██      ██   ██ ██   ██ ██   ██ ██   ██ ███████ ███████ ██ ██   ██  " );
-    println!( "  V0.1.0              Shared with much love by Joey             2022  " );
+    println!( "  V0.1.0              Shared with much love by Joey             2023  " );
     println!( " ==================================================================== " );
     println!( " ==================================================================== " );
     println!( "                             INTRODUCTION                             " );
@@ -25,7 +25,7 @@ fn main() -> Result<()>
     println!( " guide, or visit https://link_to_be_made_later.                       " );
     println!( "                                                                      " );
     println!( "                         INSTALL (TEMPORARY)                          " );
-    println!( " To use Gizmo without typing the path to it, run this command:        " );
+    println!( " To use Gizmo without typing the path to it, run the following commands:" );
 
     let mut exe_dir = env::current_exe().with_context( || "Unable to determine location of target output. Please report this error, as it shouldn't be possible to reach" )?;
 
