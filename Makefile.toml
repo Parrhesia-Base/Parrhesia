@@ -1,4 +1,37 @@
-[tasks.A]
+[tasks.create-tgt-folder]
+script_runner = "@shell"
+script = '''
+mkdir "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}"
+'''
+
+[tasks.build-frontend]
+workspace = false
 install_crate = "trunk"
-command = "echo"
-args = [ "build", "frontend", "--dist", "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}" ]
+cwd = "frontend"
+command = "trunk"
+args = [ "build", "--dist", "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/dist" ]
+dependencies = [ "create-tgt-folder" ]
+
+[tasks.build-app]
+workspace = false
+command = "cargo"
+args = [ "build", "--bin", "app" ]
+
+[tasks.build-server]
+workspace = false
+command = "cargo"
+args = [ "build", "--bin", "server" ]
+
+[tasks.build]
+clear = true
+workspace = false
+dependencies = [
+    "build-frontend",
+    "build-app",
+    "build-server",
+]
+
+[tasks.run]
+clear = true
+workspace = false
+command = "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/debug/app"
