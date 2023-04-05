@@ -1,12 +1,14 @@
-cargo-features = ["per-package-target"]
-
 [package]
 name = "frontend"
 version = "0.1.0"
+description = "A front-end interface powered by Sycamore"
+authors = ["joey"]
 edition = "2021"
-default-target = "wasm32-unknown-unknown"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+wasm-pack = "0.11.0"
 
 [dependencies]
 sycamore.workspace = true
