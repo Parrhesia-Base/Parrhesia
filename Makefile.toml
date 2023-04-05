@@ -1,0 +1,4 @@
+[tasks.A]
+install_crate = "trunk"
+command = "echo"
+args = [ "build", "frontend", "--dist", "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}" ]
