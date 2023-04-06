@@ -1,8 +1,6 @@
 [tasks.create-tgt-folder]
 script_runner = "@shell"
-script = '''
-mkdir "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}"
-'''
+script = 'mkdir "${CARGO_MAKE_CRATE_TARGET_DIRECTORY}" || exit 0'
 
 [tasks.build-frontend]
 workspace = false
